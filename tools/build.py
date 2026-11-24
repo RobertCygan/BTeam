@@ -28,7 +28,7 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / 'src'
-SCRIPTS = ['xlsx-reader.js', 'xlsx-writer.js', 'navn-kjonn.js', 'login.js', 'app.js']
+SCRIPTS = ['theme.js', 'xlsx-reader.js', 'xlsx-writer.js', 'navn-kjonn.js', 'login.js', 'app.js']
 ITERATIONS = 600_000
 
 KEYS = ['art', 'abb', 'kunde', 'status', 'belop1', 'belop2', 'navn', 'init', 'bosted', 'bolig',

@@ -160,7 +160,7 @@ mark {
 
 .topbar {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
   max-width: 1440px;
@@ -573,6 +573,15 @@ body.has-data .toolbar { border-bottom-color: var(--border); }
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+
+/* ---------- Lyst / mørkt tema ---------- */
+
+.theme-toggle { flex: none; }
+.theme-toggle svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.theme-toggle[aria-pressed="true"] .i-moon,
+.theme-toggle[aria-pressed="false"] .i-sun { display: none; }
+
+.login-theme { position: absolute; top: 16px; right: 16px; }
 
 /* ---------- Innlogging ---------- */
 

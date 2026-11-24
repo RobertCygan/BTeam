@@ -25,6 +25,18 @@ ingen server og ingen Excel-fil å velge.
   Alle endringer kan angres.
 - **Kjønn** (♀/♂) — fra kolonnen «Kjønn», ellers antatt ut fra fornavnet; kan endres med blyanten.
 - **Søk** i alle felt samtidig.
+- **Lyst / mørkt tema** — knappen ☀/☾ øverst til høyre (også på innloggingssiden). Uten valg følger
+  appen innstillingen på datamaskinen.
+
+## Sende appen til andre
+
+`index.html` er helt selvstendig: den trenger ingen andre filer og ingen internettforbindelse.
+Filen kan kopieres eller sendes og åpnes i Chrome, Edge, Firefox eller Safari på en annen datamaskin.
+
+- Lagre filen og åpne den i nettleseren. Forhåndsvisning i e-post, Teams eller OneDrive kjører ikke appen.
+- Noen e-postsystemer blokkerer `.html`-vedlegg — pakk filen i en `.zip` ved behov.
+- Den andre datamaskinen starter med dataene som er bygget inn i filen. Endringer gjort i nettleseren
+  her følger ikke med — flytt dem med «Eksporter til Excel» og «⋯ → Last inn Excel-fil».
 
 ## Hvor lagres endringene?
 
