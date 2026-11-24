@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="nb">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Bolig Team Steigen</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='12' fill='%23175a72'/%3E%3Cpath d='M3 33 14 19l6 7 9-12 16 19z' fill='%235bb3d1' opacity='.55'/%3E%3Cpath d='M13 39V27l11-9 11 9v12z' fill='%23fff'/%3E%3Crect x='19.6' y='28' width='4' height='4' rx='1' fill='%23e0242f'/%3E%3Crect x='24.4' y='28' width='4' height='4' rx='1' fill='%23ff8a1d'/%3E%3Crect x='19.6' y='32.8' width='4' height='4' rx='1' fill='%23ffd43b'/%3E%3Crect x='24.4' y='32.8' width='4' height='4' rx='1' fill='%231f6f8b'/%3E%3C/svg%3E">
+  <!-- @STYLE -->
+</head>
+<body>
+
+  <!-- ===================== Innlogging ===================== -->
+  <div class="login" id="login">
+    <form class="login-card" id="loginForm" autocomplete="on" novalidate>
+      <div class="login-logo" aria-hidden="true"><!-- @LOGO --></div>
+      <h1 class="login-title">Bolig Team Steigen</h1>
+      <p class="login-sub">Kommunale boliger i Steigen kommune</p>
+
+      <label class="ed-field">
+        <span class="ed-label">Bruker</span>
+        <input type="text" id="loginUser" name="username" autocomplete="username" autocapitalize="off" spellcheck="false" required>
+      </label>
+      <label class="ed-field">
+        <span class="ed-label">Passord</span>
+        <span class="pw-wrap">
+          <input type="password" id="loginPass" name="password" autocomplete="current-password" required>
+          <button type="button" class="pw-toggle" id="pwToggle" aria-label="Vis passord" aria-pressed="false">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </span>
+      </label>
+      <p class="login-error" id="loginError" role="alert"></p>
+      <button type="submit" class="btn btn-primary login-btn" id="loginBtn">
+        <span class="login-btn-text">Logg inn</span>
+        <span class="spinner" aria-hidden="true"></span>
+      </button>
+      <p class="login-note">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></svg>
+        Dataene er kryptert og kan bare åpnes med riktig innlogging.
+      </p>
+    </form>
+  </div>
+
+  <!-- ===================== Appen ===================== -->
+  <div class="app" id="app" hidden>
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-logo" aria-hidden="true"><!-- @LOGO --></span>
+        <div class="brand-text">
+          <h1>Bolig Team Steigen</h1>
+          <p class="subtitle" id="subtitle">Laster data…</p>
+          <p class="source" id="source"></p>
+        </div>
+      </div>
+    </header>
+
+    <div class="toolbar" id="toolbar">
+      <div class="toolbar-inner">
+        <div class="search">
+          <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>
+          <input type="text" id="search" inputmode="search" enterkeyhint="search" autocomplete="off" spellcheck="false"
+                 placeholder="Søk: navn, adresse, nummer, telefon…" aria-label="Søk etter leietakere">
+          <kbd class="search-kbd" aria-hidden="true">/</kbd>
+        </div>
+
+        <div class="controls">
+          <div class="show-picker">
+            <button type="button" class="select-btn" id="showBtn" aria-haspopup="true" aria-expanded="false" aria-controls="showMenu">
+              <span class="select-caption">Vis på kortene:</span>
+              <span class="select-value" id="showValue">Adresse</span>
+              <svg class="chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5"/></svg>
+            </button>
+            <div class="menu" id="showMenu" role="group" aria-label="Hva som vises på kortene" hidden></div>
+          </div>
+
+          <label class="select-wrap">
+            <span class="select-caption">Sorter:</span>
+            <select id="sort" aria-label="Rekkefølge på kortene">
+              <option value="file">som i filen</option>
+              <option value="alpha">A–Å etter kortet</option>
+              <option value="ut">kontraktslutt (snarest)</option>
+              <option value="reg">KPI-regulering (snarest)</option>
+            </select>
+            <svg class="chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5"/></svg>
+          </label>
+
+          <button type="button" class="btn btn-ghost toolbar-btn" id="exportBtn">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m0 0l-4-4m4 4l4-4"/><path d="M5 15v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"/></svg>
+            <span class="hide-sm">Eksporter til Excel</span>
+          </button>
+
+          <div class="more">
+            <button type="button" class="btn btn-ghost btn-icon toolbar-btn" id="moreBtn" aria-haspopup="true" aria-expanded="false" aria-controls="moreMenu" aria-label="Flere valg">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/></svg>
+            </button>
+            <div class="menu menu-right" id="moreMenu" hidden>
+              <button type="button" class="menu-cmd" id="importCmd">Last inn Excel-fil…</button>
+              <button type="button" class="menu-cmd" id="resetCmd">Tilbakestill til innebygde data…</button>
+              <button type="button" class="menu-cmd" id="logoutCmd">Logg ut</button>
+              <p class="menu-hint">Endringer lagres kryptert i denne nettleseren. Bruk «Eksporter til Excel» for å ta en kopi.</p>
+            </div>
+          </div>
+          <input type="file" id="fileInput" class="visually-hidden" tabindex="-1" aria-hidden="true"
+                 accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+
+          <p class="count" id="count" aria-live="polite"></p>
+        </div>
+      </div>
+    </div>
+
+    <main class="main">
+      <div class="loader" id="loader" hidden>
+        <svg class="loader-icon" viewBox="0 0 48 48" aria-hidden="true"><rect x="8" y="6" width="32" height="36" rx="4"/><path d="M16 18h16M16 26h16M16 34h10"/></svg>
+        <h2 id="loaderTitle">Ingen data</h2>
+        <p id="loaderText"></p>
+        <button type="button" class="btn btn-primary" id="pickBtn">Velg .xlsx-fil</button>
+      </div>
+
+      <!-- Visning | frister | ny bolig + ledige — tre kolonner med to linjer hver -->
+      <section class="panel" id="panel" hidden>
+        <div class="seg seg-vertical" role="group" aria-label="Visning">
+          <button type="button" id="viewKort" aria-pressed="true">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></svg>
+            <span>Alle boliger</span>
+          </button>
+          <button type="button" id="viewGater" aria-pressed="false">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20L9 4M20 20L15 4"/><path d="M12 6v2M12 11v2M12 16v2"/></svg>
+            <span>Etter gate</span>
+          </button>
+        </div>
+
+        <div class="overview" id="overview" role="group" aria-label="Frister"></div>
+
+        <div class="panel-actions">
+          <button type="button" class="btn btn-primary add-btn" id="addBtn">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            <span>Ny bolig</span>
+          </button>
+          <label class="switch">
+            <input type="checkbox" id="showVacant">
+            <span class="switch-track" aria-hidden="true"></span>
+            <span>Ledige boliger <span class="muted" id="vacantCount"></span></span>
+          </label>
+        </div>
+      </section>
+
+      <nav class="crumbs" id="crumbs" aria-label="Gate" hidden></nav>
+
+      <ul class="grid" id="grid" aria-label="Boliger"></ul>
+
+      <div class="empty" id="empty" hidden>
+        <p id="emptyText">Ingen treff.</p>
+        <button type="button" class="btn btn-ghost" id="clearSearch">Tøm søk og filtre</button>
+      </div>
+    </main>
+
+    <dialog class="editor" id="editor" aria-labelledby="editorTitle">
+      <form id="editorForm" novalidate>
+        <header class="editor-head">
+          <div>
+            <h2 id="editorTitle">Rediger bolig</h2>
+            <p class="editor-sub" id="editorSub"></p>
+          </div>
+          <button type="button" class="close" id="editorClose" aria-label="Lukk">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+        </header>
+        <div class="editor-body" id="editorBody"></div>
+        <footer class="editor-foot">
+          <div class="editor-foot-left">
+            <button type="button" class="btn btn-warn" id="vacateBtn" title="Tømmer navn, numre, datoer og merknader – adressen og boligen beholdes">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-6 8 6v9H4z"/><path d="M9 20v-5h6v5"/></svg>
+              <span>Marker som ledig</span>
+            </button>
+            <button type="button" class="btn btn-danger-ghost" id="deleteBtn">Slett</button>
+          </div>
+          <div class="editor-foot-right">
+            <button type="button" class="btn btn-ghost" id="cancelBtn">Avbryt</button>
+            <button type="submit" class="btn btn-primary" id="saveBtn">Lagre</button>
+          </div>
+        </footer>
+      </form>
+    </dialog>
+
+    <div class="drop-overlay" aria-hidden="true"><div>Slipp Excel-filen for å laste den inn</div></div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </div>
+
+  <!-- @PAYLOAD -->
+  <!-- @SCRIPTS -->
+</body>
+</html>

@@ -1,4 +1,4 @@
-/* Leietakere — kort med data, redigering og gruppering etter gate. */
+/* Bolig Team Steigen — kort med data, redigering og gruppering etter gate. */
 (function () {
   'use strict';
 
@@ -72,7 +72,9 @@
   const TENANT_KEYS = ['navn', 'init', 'kunde', 'abb', 'inn', 'ut', 'reg', 'status2', 'komm'];
 
   const SORTS = ['file', 'alpha', 'ut', 'reg'];
-  const STORE_KEY = 'leietakere.data.v1';
+  const STORE_KEY = 'boligteam.data.v2';     // kryptert
+  const LEGACY_KEY = 'leietakere.data.v1';   // ukryptert lagring fra tidligere versjon
+  let EMBEDDED = null;                        // de innebygde dataene (dekryptert ved innlogging)
 
   /* ---------- Tilstand ---------- */
 
@@ -100,10 +102,10 @@
   const els = {
     subtitle: $('subtitle'), source: $('source'),
     fileInput: $('fileInput'), exportBtn: $('exportBtn'), moreBtn: $('moreBtn'), moreMenu: $('moreMenu'),
-    importCmd: $('importCmd'), resetCmd: $('resetCmd'),
+    importCmd: $('importCmd'), resetCmd: $('resetCmd'), logoutCmd: $('logoutCmd'),
     search: $('search'), showBtn: $('showBtn'), showValue: $('showValue'), showMenu: $('showMenu'),
     sort: $('sort'), vacant: $('showVacant'), vacantCount: $('vacantCount'), count: $('count'),
-    overview: $('overview'), viewbar: $('viewbar'), viewKort: $('viewKort'), viewGater: $('viewGater'),
+    overview: $('overview'), panel: $('panel'), viewKort: $('viewKort'), viewGater: $('viewGater'),
     crumbs: $('crumbs'), addBtn: $('addBtn'),
     grid: $('grid'), empty: $('empty'), emptyText: $('emptyText'), clearSearch: $('clearSearch'),
     loader: $('loader'), loaderTitle: $('loaderTitle'), loaderText: $('loaderText'), pickBtn: $('pickBtn'),
@@ -311,7 +313,7 @@
     return s.slice(street.length).replace(/^[\s,]+/, '');
   }
 
-  // «Adreassen Oddny Karoline» → «A O K» (samme form som i Excel-filen).
+  // «Nordmann Kari Anne» → «N K A» (samme form som i Excel-filen).
   function autoInitials(navn) {
     if (isEmpty(navn)) return '';
     return String(navn).split(/[\s\-–.]+/).filter((w) => /\p{L}/u.test(w))
@@ -404,20 +406,40 @@
     state.nextUid = next;
   }
 
+  // Lagring i nettleseren skjer kryptert og i rekkefølge (én operasjon om gangen).
+  let storeChain = Promise.resolve();
+  const queueStore = (op) => (storeChain = storeChain.then(op).catch(() => {}));
+
   function persist() {
+    state.hasStore = true;
+    const text = JSON.stringify({ version: 1, meta: state.meta, records: state.records.map(toPlain) });
+    return queueStore(async () => {
+      try {
+        const blob = await BoligAuth.encrypt(text);
+        localStorage.setItem(STORE_KEY, JSON.stringify(blob));
+      } catch (e) {
+        toast('Endringene kunne ikke lagres i nettleseren – bruk «Eksporter til Excel» for å ta vare på dem.');
+      }
+    });
+  }
+
+  async function readStore() {
+    let raw = null;
+    try { raw = localStorage.getItem(STORE_KEY); } catch (e) { return null; }
+    if (!raw) return null;
     try {
-      localStorage.setItem(STORE_KEY, JSON.stringify({ version: 1, meta: state.meta, records: state.records.map(toPlain) }));
-      state.hasStore = true;
-      return true;
+      const data = JSON.parse(await BoligAuth.decrypt(JSON.parse(raw)));
+      return data && Array.isArray(data.records) ? data : null;
     } catch (e) {
-      toast('Endringene kunne ikke lagres i nettleseren – bruk «Eksporter til Excel» for å ta vare på dem.');
-      return false;
+      toast('Lagrede endringer i denne nettleseren kunne ikke åpnes (filen eller passordet er endret).');
+      return null;
     }
   }
 
-  function readStore() {
+  // Ukryptert lagring fra en tidligere versjon tas med og fjernes.
+  function readLegacy() {
     try {
-      const raw = localStorage.getItem(STORE_KEY);
+      const raw = localStorage.getItem(LEGACY_KEY);
       if (!raw) return null;
       const data = JSON.parse(raw);
       return data && Array.isArray(data.records) ? data : null;
@@ -425,8 +447,8 @@
   }
 
   function clearStore() {
-    try { localStorage.removeItem(STORE_KEY); } catch (e) { /* ingenting */ }
     state.hasStore = false;
+    return queueStore(() => { localStorage.removeItem(STORE_KEY); });
   }
 
   // Alle endringer går gjennom denne: lagrer, tegner på nytt og gir mulighet til å angre.
@@ -528,24 +550,24 @@
   /* ---------- Innlasting ved oppstart ---------- */
 
   async function init() {
-    const stored = readStore();
+    let stored = await readStore();
+    const legacy = readLegacy();
+    if (!stored && legacy) stored = legacy;
     if (stored) {
-      state.hasStore = true;
       applyData(stored);
-      return showData();
+      state.hasStore = true;
+      if (legacy) {
+        await persist();
+        try { localStorage.removeItem(LEGACY_KEY); } catch (e) { /* ingenting */ }
+      }
+    } else if (EMBEDDED) {
+      applyData(EMBEDDED);
     }
-    if (window.INNEBYGDE_DATA) {
-      applyData(window.INNEBYGDE_DATA);
-      return showData();
+    if (!state.records.length) {
+      showLoader('Ingen data', 'Last inn Excel-filen med leietakere, eller dra den hit.');
+      return;
     }
-    try {
-      const res = await fetch('Data.xlsx', { cache: 'no-store' });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      applyData(await importBuffer(await res.arrayBuffer(), 'Data.xlsx'));
-      return showData();
-    } catch (err) {
-      showLoader('Velg Excel-fil', 'Fant ingen data. Velg Excel-filen med leietakere, eller dra den hit.');
-    }
+    showData();
   }
 
   function showData() {
@@ -1107,8 +1129,8 @@
       state.openId = null;
       render();
     }).then(() => {
-      const top = els.viewbar.getBoundingClientRect().top;
-      if (top < 0) els.viewbar.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      const top = els.panel.getBoundingClientRect().top;
+      if (top < 0) els.panel.scrollIntoView({ block: 'start', behavior: 'smooth' });
     });
   }
 
@@ -1150,7 +1172,7 @@
         chip.title = g.title + ': ' + (st === 'past' ? g.pastHint : DUE[st].hint) + ' – klikk for å filtrere';
         chip.append(el('span', 'sw sw-' + st));
         chip.append(el('span', null, st === 'past' ? g.pastLabel : DUE[st].label));
-        chip.append(el('b', 'chip-n', String(n)));
+        chip.append(el('span', 'chip-n', '(ant. ' + n + ')'));
         chip.addEventListener('click', () => {
           if (state.filters.has(id)) state.filters.delete(id);
           else state.filters.add(id);
@@ -1164,13 +1186,13 @@
       const reset = el('button', 'ov-reset', 'Vis alle');
       reset.type = 'button';
       reset.addEventListener('click', () => { state.filters.clear(); render(); });
-      els.overview.append(reset);
+      els.overview.lastElementChild.append(reset);
     }
     els.overview.hidden = false;
   }
 
-  function renderViewbar(scope) {
-    els.viewbar.hidden = false;
+  function renderPanel(scope) {
+    els.panel.hidden = false;
     els.viewKort.setAttribute('aria-pressed', String(state.view === 'kort'));
     els.viewGater.setAttribute('aria-pressed', String(state.view === 'gater'));
     els.crumbs.replaceChildren();
@@ -1183,11 +1205,10 @@
       back.addEventListener('click', leaveStreet);
       const anyUnit = state.records.find((r) => r.streetKey === state.street);
       const name = anyUnit ? anyUnit.street : state.street;
-      const cur = el('span', 'crumb-cur', name);
-      els.crumbs.append(back, el('span', 'crumb-sep', '/'), cur,
-        el('span', 'crumb-n', scope.length + ' ' + plural(scope.length, 'bolig', 'boliger')));
+      els.crumbs.append(back, el('span', 'crumb-sep', '/'), el('span', 'crumb-cur', name),
+        el('span', 'crumb-n', '(ant. ' + scope.length + ' ' + plural(scope.length, 'bolig', 'boliger') + ')'));
     }
-    els.addBtn.querySelector('.add-label').textContent = inStreet ? 'Ny bolig i denne gaten' : 'Ny bolig';
+    els.addBtn.title = inStreet ? 'Ny bolig i denne gaten' : 'Ny bolig';
   }
 
   /* ---------- Tegning ---------- */
@@ -1196,7 +1217,7 @@
     const scope = scopeRecords();
     const list = scope.filter(passesFilters);
     renderOverview(scope);
-    renderViewbar(scope);
+    renderPanel(scope);
 
     const frag = document.createDocumentFragment();
     const streetList = state.view === 'gater' && state.street == null;
@@ -1214,6 +1235,7 @@
     els.grid.classList.toggle('only-initials', state.show.length === 1 && state.show[0] === 'init');
 
     const total = state.records.filter((r) => state.showVacant || !r.vacant).length;
+    els.count.classList.toggle('is-active', !!(state.tokens.length || state.filters.size || state.street != null));
     if (streetList) {
       els.count.textContent = shown + ' ' + plural(shown, 'gate', 'gater') + ' · ' + list.length + ' ' + plural(list.length, 'bolig', 'boliger');
     } else {
@@ -1252,7 +1274,7 @@
     els.exportBtn.title = pending
       ? 'Det finnes endringer som ikke er eksportert til Excel ennå'
       : 'Last ned alle data som Excel-fil';
-    els.resetCmd.disabled = !state.hasStore || !window.INNEBYGDE_DATA;
+    els.resetCmd.disabled = !state.hasStore || !EMBEDDED;
   }
 
   function renderAll() {
@@ -1779,16 +1801,19 @@
   els.importCmd.addEventListener('click', () => { setMoreMenu(false); els.fileInput.click(); });
   els.resetCmd.addEventListener('click', () => {
     setMoreMenu(false);
-    if (!window.INNEBYGDE_DATA) return;
+    if (!EMBEDDED) return;
     if (!confirm('Alle endringer som er gjort i denne nettleseren, forkastes, og de innebygde dataene lastes inn på nytt. Fortsette?')) return;
-    mutate('De innebygde dataene er lastet inn på nytt.', () => {
-      applyData(window.INNEBYGDE_DATA);
-      state.openId = null;
-      state.street = null;
-    });
+    state.undo.push(snapshot());
+    applyData(EMBEDDED);
+    state.openId = null;
+    state.street = null;
     clearStore();
-    state.meta.savedAt = null;
-    updateSource();
+    renderAll();
+    toast('De innebygde dataene er lastet inn på nytt.', { action: 'Angre', run: undo, ms: 7000 });
+  });
+  els.logoutCmd.addEventListener('click', () => {
+    setMoreMenu(false);
+    BoligAuth.logout();
   });
 
   els.fileInput.addEventListener('change', () => {
@@ -1851,14 +1876,17 @@
   const setPlaceholder = () => {
     els.search.placeholder = narrow.matches
       ? 'Søk: navn, adresse, nummer…'
-      : 'Søk: navn, initialer, adresse, nummer, telefon…';
+      : 'Søk: navn, adresse, nummer, telefon…';
   };
   setPlaceholder();
   if (narrow.addEventListener) narrow.addEventListener('change', setPlaceholder);
 
   buildShowMenu();
   buildEditorForm();
-  init().then(updateSource);
+  BoligAuth.unlock().then((data) => {
+    EMBEDDED = data;
+    return init();
+  }).then(updateSource);
 
   // For testing og feilsøking.
   window.__leietakere = { snapshot: () => JSON.parse(snapshot()), importBuffer };
