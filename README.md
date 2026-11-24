@@ -1,61 +1,50 @@
-# Leietakere — kort fra Excel-filen
+# Leietakere — kort over kommunale boliger
 
 En enkel nettapp (bare HTML/CSS/JS, ingen installasjon og ingen eksterne biblioteker) som viser
-leietakerne fra `Data.xlsx` som kort.
+leietakerne og boligene som kort. **Åpne `index.html` i nettleseren** — dataene er bygget inn, så det
+er ikke nødvendig å velge noen Excel-fil.
 
 ## Funksjoner
 
-- **Kort** — hver leietaker i arket blir ett kort. Som standard viser kortet bare **adressen** (kolonne K).
-- **Vis på kortene:** — velg hva som skal stå på kortene (flere felt samtidig er mulig):
-  initialer (kolonne H), fullt navn (G), adresse (K), Kundenr. og Abb.nr. (C og B).
-- **Tre datoer på hvert kort, alltid** — uansett hva som er valgt:
-  - **Inn** – dato innflytting (L),
-  - **Ut** – dato utflytting / kontraktslutt (M),
-  - **Reg.** – neste regulering etter KPI (N).
-- **Fargekoder for kontraktslutt** — hele kortet farges når kontrakten snart utløper:
+- **Kort** — hver bolig er ett kort. Som standard viser kortet **adressen**.
+  Under «Vis på kortene» kan du i tillegg velge initialer, fullt navn og Kundenr./Abb.nr.
+- **Tre datoer på hvert kort**: **Inn** (innflytting), **Ut** (kontraktslutt) og **Reg.** (neste KPI-regulering).
+- **Fargekoder for kontraktslutt** (hele kortet): 🟥 under 1 måned, 🟧 1–2 måneder, 🟨 2–3 måneder,
+  skravert med mørkerød kant = kontrakten har utløpt.
+  KPI-reguleringen har de samme fristene som en merkelapp ved datoen («forfalt» når datoen er passert).
+- **Oversikt over frister** øverst — klikk på en kategori for å vise bare de kortene.
+- **Kjønn** (♀/♂) — fra kolonnen «Kjønn», ellers antatt ut fra fornavnet. Kan endres med blyanten.
+- **Søk** i alle felt samtidig (store/små bokstaver, æ/ø/å og mellomrom i numre spiller ingen rolle).
 
-  | Farge | Betydning |
-  | --- | --- |
-  | 🟥 knallrød | under 1 måned igjen |
-  | 🟧 oransje | 1–2 måneder igjen |
-  | 🟨 gul | 2–3 måneder igjen |
-  | skravert med mørkerød kant | kontrakten har allerede utløpt |
+### Redigering ✎
 
-- **KPI-regulering** — samme frister vises som en farget merkelapp ved «Reg.»-datoen
-  (rød / oransje / gul, og «forfalt» når datoen er passert uten å ha blitt oppdatert).
-- **Oversikt over frister** øverst: antall kort i hver kategori for kontraktslutt og KPI-regulering.
-  Klikk på en kategori for å vise bare de kortene.
-- **Kjønn** — hvert kort har symbolet ♀ eller ♂. Kjønnet hentes fra kolonnen «Kjønn» (M/K) hvis den finnes i
-  Excel-filen, ellers antas det ut fra fornavnet (ordlisten ligger i `navn-kjonn.js`).
-  Står det **?** på kortet, er kjønnet ukjent — legg da til kolonnen «Kjønn» i Excel.
-  Tjenester (f.eks. «Helse og omsorg», «Nav») får et eget symbol.
-- **Utvidet kort** — klikk på et kort for å se alle data fra raden: varsler om frister, numre med
-  kopieringsknapp, beløp, telefon som lenke og kommentarer fra cellene i Excel. `Esc` eller `×` lukker kortet.
-- **Søk** i alle kolonner samtidig: navn, initialer, adresse, Kundenr., Abb.nr., telefon, kommentarer …
-  Store/små bokstaver, æ/ø/å og mellomrom i numre spiller ingen rolle (`molnmoa` finner «Mølnmoa»,
-  `45254373` finner «452 54 373»). Snarvei: `/`.
-- **Sortering**: som i filen, A–Å, etter kontraktslutt eller etter KPI-regulering (snarest først).
-- **Ledige boliger** (rader uten leietaker) er skjult som standard og kan slås på.
+- Hvert kort har en **blyant**. Der kan alt endres: navn, initialer (fylles ut automatisk), kjønn,
+  numre, telefon, adresse, bolig, datoer, beløp og merknad.
+- **Marker som ledig** — ett klikk tømmer leietakerens data (navn, numre, datoer, telefon, merknader).
+  Adressen, boligen og ARTnr beholdes, og leien flyttes til «Beløp 1» slik som for de andre ledige boligene.
+- **Ny bolig** — knappen over kortene. Med «Antall boliger» kan flere boliger på samme adresse opprettes
+  på én gang (f.eks. 4 nye leiligheter i et nytt hus).
+- **Slett** — fjerner et kort.
+- Alle endringer kan **angres** fra meldingen nederst på skjermen.
 
-Datoene sammenlignes med dagens dato i nettleseren, så fargene oppdaterer seg selv fra dag til dag.
+### Etter gate
 
-## Slik starter du
+Velg **Etter gate** for å se ett kort per gate (f.eks. «Eldridhågen» med alle 19 boligene), med antall
+leietakere, ledige boliger, husnumre og frister. Klikk på gaten for å se bare de boligene.
+«Ny bolig i denne gaten» fyller ut gatenavnet automatisk.
 
-Dataene leses rett fra Excel-filen, så når `Data.xlsx` byttes ut, viser appen de nye dataene med en gang.
+## Hvor lagres endringene?
 
-**Måte 1 — åpne `index.html` i nettleseren.**
-Nettleseren lar ikke en side som er åpnet fra disken lese andre filer på egen hånd, så appen ber deg velge
-Excel-filen (knapp, eller dra filen inn på siden). Filen leses bare lokalt i nettleseren — ingenting sendes noe sted.
+- Endringer lagres **automatisk i nettleseren** på denne datamaskinen (localStorage) og er der neste gang
+  `index.html` åpnes — i den samme nettleseren.
+- **Eksporter til Excel** laster ned alle data som en `.xlsx`-fil (samme kolonner som originalen, pluss
+  «Kjønn» og «Merknad»). En oransje prikk på knappen betyr at det finnes endringer som ikke er eksportert.
+  Bruk eksporten som sikkerhetskopi og når dataene skal deles med andre.
+- **⋯ → Last inn Excel-fil** erstatter dataene i appen med innholdet i en Excel-fil (f.eks. en eksport).
+- **⋯ → Tilbakestill til innebygde data** forkaster endringene i nettleseren.
 
-**Måte 2 — lokal server** (da lastes `Data.xlsx` fra mappen automatisk):
-
-```bash
-python -m http.server 8000
-```
-
-og åpne <http://localhost:8000>.
-
-Du kan når som helst laste inn en annen fil med knappen **Last inn Excel-fil**.
+Hvis nettleserdata slettes (eller en annen nettleser/datamaskin brukes), vises de innebygde dataene igjen —
+eksporter derfor jevnlig.
 
 ## Filer
 
@@ -63,15 +52,12 @@ Du kan når som helst laste inn en annen fil med knappen **Last inn Excel-fil**.
 | --- | --- |
 | `index.html` | siden |
 | `style.css` | utseende (lyst og mørkt tema, mobilvisning) |
-| `app.js` | kort, valg av felt, frister, søk, utvidet kort |
+| `app.js` | kort, redigering, frister, søk, gruppering etter gate, lagring |
+| `data.js` | innebygde data, generert fra `Data.xlsx` |
 | `navn-kjonn.js` | ordliste over fornavn for å anta kjønn |
-| `xlsx-reader.js` | enkel leser for `.xlsx`-filer, skrevet uten eksterne biblioteker |
-
-Kolonnene finnes ut fra overskriftene i raden med «Navn» og «Adresse»; hvis en overskrift endres, brukes
-kolonnebokstaven (A–P). Nye rader og små endringer i arket krever derfor ingen endringer i koden.
+| `xlsx-reader.js` / `xlsx-writer.js` | lesing og skriving av `.xlsx`-filer uten eksterne biblioteker |
 
 ## Personopplysninger
 
-`Data.xlsx` inneholder personopplysninger (navn, adresser, telefonnumre). Dette repositoriet er
-**offentlig** — vurder å fjerne filen fra repositoriet (og fra git-historikken) eller å gjøre repositoriet
-privat. Appen fungerer også uten filen i repositoriet: last den inn fra disken.
+`Data.xlsx` og `data.js` inneholder personopplysninger (navn, adresser, telefonnumre). Dette repositoriet er
+**offentlig** — vurder å gjøre det privat, eller å fjerne filene fra repositoriet og git-historikken.
