@@ -1,4 +1,4 @@
-/* ---------- Motyw ---------- */
+/* ---------- Tema ---------- */
 
 :root {
   --bg: #f3f5f8;
@@ -19,6 +19,18 @@
   --ok-soft: #e2f4ea;
   --off: #8a5a12;
   --off-soft: #fbf0dc;
+  --due-m1: #e0242f;
+  --due-m1-ink: #ffffff;
+  --due-m2: #ff8a1d;
+  --due-m2-ink: #2b1400;
+  --due-m3: #ffd43b;
+  --due-m3-ink: #2e2400;
+  --due-past: #9f1c24;
+  --due-past-soft: rgba(159, 28, 36, .045);
+  --female: #9a3cc4;
+  --female-soft: #f5eafb;
+  --male: #2563c9;
+  --male-soft: #e6eefb;
   --shadow-sm: 0 1px 2px rgba(16, 24, 40, .06);
   --shadow-md: 0 6px 18px -6px rgba(16, 24, 40, .16), 0 2px 4px rgba(16, 24, 40, .05);
   --shadow-lg: 0 22px 48px -18px rgba(16, 24, 40, .28), 0 4px 10px rgba(16, 24, 40, .06);
@@ -49,6 +61,18 @@
     --ok-soft: #173327;
     --off: #e8b866;
     --off-soft: #352a15;
+    --due-m1: #e3343d;
+    --due-m1-ink: #ffffff;
+    --due-m2: #f59330;
+    --due-m2-ink: #231000;
+    --due-m3: #f2cb4d;
+    --due-m3-ink: #261d00;
+    --due-past: #ff8a8a;
+    --due-past-soft: rgba(255, 110, 110, .08);
+    --female: #d4a1f0;
+    --female-soft: #33233f;
+    --male: #8fb8ff;
+    --male-soft: #1c2b45;
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, .3);
     --shadow-md: 0 8px 20px -8px rgba(0, 0, 0, .55);
     --shadow-lg: 0 24px 50px -18px rgba(0, 0, 0, .7);
@@ -75,13 +99,25 @@
   --ok-soft: #173327;
   --off: #e8b866;
   --off-soft: #352a15;
+  --due-m1: #e3343d;
+  --due-m1-ink: #ffffff;
+  --due-m2: #f59330;
+  --due-m2-ink: #231000;
+  --due-m3: #f2cb4d;
+  --due-m3-ink: #261d00;
+  --due-past: #ff8a8a;
+  --due-past-soft: rgba(255, 110, 110, .08);
+  --female: #d4a1f0;
+  --female-soft: #33233f;
+  --male: #8fb8ff;
+  --male-soft: #1c2b45;
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, .3);
   --shadow-md: 0 8px 20px -8px rgba(0, 0, 0, .55);
   --shadow-lg: 0 24px 50px -18px rgba(0, 0, 0, .7);
   color-scheme: dark;
 }
 
-/* ---------- Podstawy ---------- */
+/* ---------- Grunnlag ---------- */
 
 *, *::before, *::after { box-sizing: border-box; }
 
@@ -117,7 +153,7 @@ mark {
   outline-offset: 2px;
 }
 
-/* ---------- Nagłówek ---------- */
+/* ---------- Topptekst ---------- */
 
 .topbar {
   display: flex;
@@ -197,7 +233,7 @@ mark {
 }
 .file-btn:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-/* ---------- Pasek narzędzi ---------- */
+/* ---------- Verktøylinje ---------- */
 
 .toolbar {
   position: sticky;
@@ -459,7 +495,7 @@ body.has-data .toolbar { border-bottom-color: var(--border); }
   white-space: nowrap;
 }
 
-/* ---------- Siatka kafelków ---------- */
+/* ---------- Kortrutenett ---------- */
 
 .main {
   max-width: 1440px;
@@ -468,7 +504,7 @@ body.has-data .toolbar { border-bottom-color: var(--border); }
 }
 
 .grid {
-  --tile-min: 190px;
+  --tile-min: 224px;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -478,15 +514,22 @@ body.has-data .toolbar { border-bottom-color: var(--border); }
   align-items: stretch;
 }
 
-.grid.only-initials { --tile-min: 104px; }
+.grid.only-initials { --tile-min: 200px; }
 
 .tile {
+  /* Farger inne i kortet — overstyres av fargekodene for kontraktslutt */
+  --t-fg: var(--text);
+  --t-fg-2: var(--text-2);
+  --t-muted: var(--muted);
+  --t-line: var(--border);
+  --t-accent: var(--accent-ink);
   position: relative;
   min-width: 0;
   border-radius: var(--radius);
   background: var(--surface);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
+  color: var(--t-fg);
   scroll-margin-top: calc(var(--toolbar-h) + 16px);
   scroll-margin-bottom: 16px;
   transition: border-color .15s, box-shadow .2s, transform .2s var(--ease);
@@ -506,37 +549,93 @@ body.has-data .toolbar { border-bottom-color: var(--border); }
   box-shadow: var(--shadow-lg);
 }
 
-/* Zwinięty kafelek */
+/* Fargekoder: kontrakten utløper om under 1 / 1–2 / 2–3 måneder (hele kortet farges) */
+
+.tile.ut-m1:not(.is-open),
+.tile.ut-m2:not(.is-open),
+.tile.ut-m3:not(.is-open) {
+  --t-line: color-mix(in srgb, var(--t-fg) 22%, transparent);
+  --t-fg-2: color-mix(in srgb, var(--t-fg) 85%, transparent);
+  --t-muted: color-mix(in srgb, var(--t-fg) 68%, transparent);
+  --t-accent: var(--t-fg);
+  border-style: solid;
+}
+
+.tile.ut-m1:not(.is-open) {
+  --t-fg: var(--due-m1-ink);
+  background: var(--due-m1);
+  border-color: color-mix(in srgb, var(--due-m1) 75%, #000);
+}
+
+.tile.ut-m2:not(.is-open) {
+  --t-fg: var(--due-m2-ink);
+  background: var(--due-m2);
+  border-color: color-mix(in srgb, var(--due-m2) 75%, #000);
+}
+
+.tile.ut-m3:not(.is-open) {
+  --t-fg: var(--due-m3-ink);
+  background: var(--due-m3);
+  border-color: color-mix(in srgb, var(--due-m3) 70%, #000);
+}
+
+/* Kontrakten har allerede utløpt: skravert kort med mørkerød kant */
+.tile.ut-past:not(.is-open) {
+  background: repeating-linear-gradient(135deg, var(--surface) 0 12px, var(--due-past-soft) 12px 24px);
+  border: 1.5px solid var(--due-past);
+}
+
+.tile.is-open.ut-m1 { border-color: var(--due-m1); box-shadow: 0 0 0 1px var(--due-m1), var(--shadow-lg); }
+.tile.is-open.ut-m2 { border-color: var(--due-m2); box-shadow: 0 0 0 1px var(--due-m2), var(--shadow-lg); }
+.tile.is-open.ut-m3 { border-color: var(--due-m3); box-shadow: 0 0 0 1px var(--due-m3), var(--shadow-lg); }
+.tile.is-open.ut-past { border-color: var(--due-past); }
+
+/* Sammenslått kort */
 
 .face {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 4px;
+  align-items: stretch;
+  gap: 10px;
   width: 100%;
   height: 100%;
   min-height: 92px;
-  padding: 16px 18px;
+  padding: 14px 16px 12px;
   border: 0;
   border-radius: inherit;
   background: none;
+  color: inherit;
   text-align: left;
   cursor: pointer;
 }
 
 .face:focus-visible { outline-offset: -2px; }
 
-.face > * { max-width: 100%; overflow-wrap: anywhere; }
+.face-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
 
-.face .is-primary { font-size: 17px; font-weight: 650; line-height: 1.3; color: var(--text); }
-.face > :not(.is-primary):not(.snippet):not(.badge) { font-size: 14px; color: var(--text-2); }
+.face-main {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.face .is-primary { font-size: 17px; font-weight: 650; line-height: 1.3; color: var(--t-fg); }
+.face-main > :not(.is-primary) { font-size: 14px; color: var(--t-fg-2); }
 
 .face .f-init.is-primary {
   font-size: 26px;
   font-weight: 750;
+  line-height: 1.15;
   letter-spacing: .06em;
-  color: var(--accent-ink);
+  color: var(--t-accent);
 }
 
 .face .f-init:not(.is-primary) {
@@ -544,28 +643,21 @@ body.has-data .toolbar { border-bottom-color: var(--border); }
   padding: 1px 7px;
   border-radius: 6px;
   background: var(--accent-soft);
-  color: var(--accent-ink) !important;
+  color: var(--accent-ink);
   font-weight: 700;
-  font-size: 12px !important;
+  font-size: 12px;
   letter-spacing: .06em;
   order: -1;
   margin-bottom: 2px;
 }
 
-.grid.only-initials .face {
-  align-items: center;
-  aspect-ratio: 1;
-  min-height: 0;
-  padding: 10px;
-}
-
-.grid.only-initials .face .f-init.is-primary { font-size: 28px; }
+.grid.only-initials .face .f-init.is-primary { font-size: 30px; }
 
 .f-nr { display: flex; flex-direction: column; gap: 2px; }
 .f-nr-line { display: flex; align-items: baseline; gap: 8px; }
 .f-nr-label {
   min-width: 62px;
-  color: var(--muted);
+  color: var(--t-muted);
   font-size: 12px;
   font-weight: 500;
   text-transform: uppercase;
@@ -573,26 +665,24 @@ body.has-data .toolbar { border-bottom-color: var(--border); }
 }
 .f-nr-val { font-variant-numeric: tabular-nums; }
 .f-nr.is-primary .f-nr-val { font-size: 17px; font-weight: 650; }
-.f-nr:not(.is-primary) .f-nr-val { font-size: 14px; color: var(--text-2); }
+.f-nr:not(.is-primary) .f-nr-val { font-size: 14px; color: var(--t-fg-2); }
 
-.face .is-missing { color: var(--muted) !important; font-weight: 500 !important; font-style: italic; }
+.face .is-missing { color: var(--t-muted) !important; font-weight: 500 !important; font-style: italic; }
 
 .snippet {
-  margin-top: 4px;
   padding: 4px 8px;
   border-radius: 7px;
-  background: var(--surface-2);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
   border: 1px solid var(--border);
   font-size: 12.5px;
   color: var(--text-2);
+  overflow-wrap: anywhere;
 }
 
 .snippet-label { color: var(--muted); }
 
 .badge {
-  position: absolute;
-  top: 8px;
-  right: 8px;
+  flex: none;
   padding: 1px 8px;
   border-radius: 99px;
   background: var(--off-soft);
@@ -603,7 +693,175 @@ body.has-data .toolbar { border-bottom-color: var(--border); }
   text-transform: uppercase;
 }
 
-/* ---------- Rozwinięty kafelek ---------- */
+/* Kjønn: ♀ / ♂ */
+
+.gender {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--g-soft, var(--surface-2));
+  color: var(--g-ink, var(--muted));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--g-ink, var(--muted)) 25%, transparent);
+}
+
+.gender svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.g-k { --g-ink: var(--female); --g-soft: var(--female-soft); }
+.g-m { --g-ink: var(--male); --g-soft: var(--male-soft); }
+.g-org { --g-ink: var(--text-2); --g-soft: var(--surface-2); }
+.g-unknown { --g-ink: var(--muted); --g-soft: var(--surface-2); }
+
+.tile.ut-m1:not(.is-open) .gender,
+.tile.ut-m2:not(.is-open) .gender,
+.tile.ut-m3:not(.is-open) .gender { background: var(--surface); box-shadow: none; }
+
+/* De tre datoene nederst på kortet */
+
+.dates {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-top: auto;
+  padding-top: 9px;
+  border-top: 1px solid var(--t-line);
+  font-size: 13px;
+}
+
+.date-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 8px;
+  min-height: 22px;
+}
+
+.date-label {
+  flex: none;
+  width: 30px;
+  color: var(--t-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.date-val {
+  color: var(--t-fg);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.date-val.is-missing { color: var(--t-muted); font-weight: 400; }
+.date-val.is-bad { text-decoration: underline wavy var(--off); text-underline-offset: 3px; }
+
+.due {
+  display: inline-flex;
+  align-items: center;
+  margin-left: auto;
+  padding: 1px 8px;
+  border-radius: 99px;
+  font-size: 11.5px;
+  font-weight: 700;
+  line-height: 1.5;
+  white-space: nowrap;
+  box-shadow: 0 0 0 1.5px var(--surface);
+}
+
+.due-m1 { background: var(--due-m1); color: var(--due-m1-ink); }
+.due-m2 { background: var(--due-m2); color: var(--due-m2-ink); }
+.due-m3 { background: var(--due-m3); color: var(--due-m3-ink); }
+.due-past { background: var(--surface); color: var(--due-past); box-shadow: inset 0 0 0 1.5px var(--due-past); }
+.due-bad { background: var(--surface); color: var(--off); box-shadow: inset 0 0 0 1px var(--off); }
+
+/* ---------- Oversikt over frister ---------- */
+
+.overview {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 28px;
+  margin: 0 0 18px;
+}
+
+.ov-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.ov-title {
+  margin-right: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 32px;
+  padding: 0 11px 0 10px;
+  border-radius: 99px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: 13px;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: background-color .15s, border-color .15s, color .15s;
+}
+
+.chip:hover:not(:disabled) { border-color: var(--border-strong); color: var(--text); }
+.chip[aria-pressed="true"] { background: var(--text); border-color: var(--text); color: var(--bg); }
+.chip:disabled { opacity: .45; cursor: default; box-shadow: none; }
+.chip-n { font-variant-numeric: tabular-nums; }
+
+.sw {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+}
+
+.sw-m1 { background: var(--due-m1); }
+.sw-m2 { background: var(--due-m2); }
+.sw-m3 { background: var(--due-m3); }
+.sw-past {
+  background: repeating-linear-gradient(135deg, var(--surface) 0 2px, var(--due-past) 2px 4px);
+  box-shadow: inset 0 0 0 1.5px var(--due-past);
+}
+
+.chip[aria-pressed="true"] .sw { box-shadow: 0 0 0 1.5px var(--bg); }
+
+.ov-reset {
+  height: 32px;
+  padding: 0 6px;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.ov-reset:hover { text-decoration: underline; }
+
+/* ---------- Utvidet kort ---------- */
 
 .detail { padding: 22px clamp(16px, 2.4vw, 28px) 16px; }
 
@@ -614,6 +872,7 @@ body.has-data .toolbar { border-bottom-color: var(--border); }
 }
 
 .monogram {
+  position: relative;
   flex: none;
   width: 58px;
   height: 58px;
@@ -627,7 +886,45 @@ body.has-data .toolbar { border-bottom-color: var(--border); }
   letter-spacing: .04em;
 }
 
+.monogram .gender {
+  position: absolute;
+  right: -8px;
+  bottom: -8px;
+  width: 26px;
+  height: 26px;
+  box-shadow: 0 0 0 2px var(--surface);
+}
+
+.monogram .gender svg { width: 16px; height: 16px; }
+
 .detail-titles { flex: 1; min-width: 0; }
+
+.gender-text { color: var(--muted); }
+
+.alerts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.alert {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 14.5px;
+  font-weight: 600;
+}
+
+.alert .icon svg { width: 20px; height: 20px; }
+.alert-m1 { background: var(--due-m1); color: var(--due-m1-ink); }
+.alert-m2 { background: var(--due-m2); color: var(--due-m2-ink); }
+.alert-m3 { background: var(--due-m3); color: var(--due-m3-ink); }
+.alert-past { background: var(--due-past-soft); color: var(--due-past); box-shadow: inset 0 0 0 1.5px var(--due-past); }
+
+.field dd .due { margin-left: 8px; vertical-align: 1px; }
 
 .detail-name {
   margin: 0;
@@ -755,11 +1052,6 @@ body.has-data .toolbar { border-bottom-color: var(--border); }
   font-size: 13px;
 }
 
-.field dt .orig {
-  font-size: 11px;
-  color: color-mix(in srgb, var(--muted) 70%, transparent);
-}
-
 .field dd {
   margin: 2px 0 0;
   font-size: 15.5px;
@@ -821,7 +1113,7 @@ body.has-data .toolbar { border-bottom-color: var(--border); }
   font-size: 12px;
 }
 
-/* ---------- Stany ---------- */
+/* ---------- Tilstander ---------- */
 
 .loader,
 .empty {
@@ -887,9 +1179,9 @@ body.is-dragging .drop-overlay { display: grid; }
 
 .toast.is-visible { opacity: 1; transform: translate(-50%, 0); }
 
-/* ---------- Animacja rozwijania (View Transitions API) ---------- */
+/* ---------- Animasjon ved åpning (View Transitions API) ---------- */
 
-/* Strona nie jest „zamrażana” podczas animacji — animują się tylko kafelki. */
+/* Siden «fryses» ikke under animasjonen — bare kortene animeres. */
 :root { view-transition-name: none; }
 ::view-transition { pointer-events: none; }
 
@@ -900,7 +1192,7 @@ body.is-dragging .drop-overlay { display: grid; }
   overflow: hidden;
 }
 
-/* Treść nie jest rozciągana — kafelek „odsłania” się w trakcie zmiany rozmiaru. */
+/* Innholdet strekkes ikke — kortet «avdekkes» mens størrelsen endres. */
 ::view-transition-old(*),
 ::view-transition-new(*) {
   width: 100%;
@@ -909,7 +1201,7 @@ body.is-dragging .drop-overlay { display: grid; }
   object-position: left top;
 }
 
-/* Rozwijany/zwijany kafelek dostaje krótkie przenikanie (reguły dopisuje app.js). */
+/* Kortet som åpnes/lukkes får en kort overtoning (reglene legges til av app.js). */
 @keyframes vt-fade-in { from { opacity: 0; } }
 @keyframes vt-fade-out { to { opacity: 0; } }
 
@@ -917,7 +1209,7 @@ body.is-dragging .drop-overlay { display: grid; }
   .tile, .tile:not(.is-open):hover { transition: none; transform: none; }
 }
 
-/* ---------- Telefon ---------- */
+/* ---------- Mobil ---------- */
 
 @media (max-width: 640px) {
   .topbar { padding-top: 20px; align-items: flex-start; }
@@ -930,14 +1222,25 @@ body.is-dragging .drop-overlay { display: grid; }
   .controls { width: 100%; gap: 8px 10px; }
   .select-btn, .select-wrap { height: 36px; font-size: 13px; }
   .select-caption { display: none; }
-  .count { width: 100%; margin: -2px 0 0; order: 10; font-size: 12px; line-height: 1.2; }
+  .count { margin: 0 0 0 auto; font-size: 12px; }
   .hide-sm { display: none; }
   .switch { font-size: 13px; }
   .grid { --tile-min: 150px; gap: 10px; }
-  .grid.only-initials { --tile-min: 78px; }
-  .face { min-height: 80px; padding: 12px 14px; }
+  .grid.only-initials { --tile-min: 150px; }
+  .face { min-height: 80px; padding: 12px 12px 10px; gap: 8px; }
   .face .is-primary { font-size: 15.5px; }
-  .grid.only-initials .face .f-init.is-primary { font-size: 22px; }
+  .grid.only-initials .face .f-init.is-primary { font-size: 24px; }
+  .gender { width: 26px; height: 26px; }
+  .gender svg { width: 16px; height: 16px; }
+  .dates { font-size: 12px; }
+  .date-row { gap: 2px 6px; }
+  .date-label { width: 24px; font-size: 10px; }
+  .due { font-size: 10.5px; padding: 0 6px; }
+  .select-wrap select { max-width: 118px; text-overflow: ellipsis; }
+  .overview { gap: 10px; }
+  .ov-group { gap: 5px; }
+  .ov-title { width: 100%; }
+  .chip { height: 30px; font-size: 12.5px; padding: 0 9px; }
   .monogram { width: 46px; height: 46px; font-size: 16px; border-radius: 12px; }
   .detail-head { gap: 12px; }
   .keynums { grid-template-columns: 1fr 1fr; }

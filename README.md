@@ -1,59 +1,77 @@
-# Klienci — kafelki z pliku Excel
+# Leietakere — kort fra Excel-filen
 
-Prosta aplikacja webowa (sam HTML/CSS/JS, bez instalacji i bez zewnętrznych bibliotek),
-która pokazuje klientów z pliku `Data.xlsx` jako kafelki.
+En enkel nettapp (bare HTML/CSS/JS, ingen installasjon og ingen eksterne biblioteker) som viser
+leietakerne fra `Data.xlsx` som kort.
 
-## Co potrafi
+## Funksjoner
 
-- **Kafelki** — każdy klient z arkusza to jeden kafelek. Domyślnie na kafelku widać tylko **adres** (kolumna K).
-- **Na kafelkach:** — lista, z której wybierasz, co ma być na kafelkach (można zaznaczyć kilka pól naraz):
-  - Inicjały (kolumna H),
-  - Imię i nazwisko (kolumna G),
-  - Adres (kolumna K),
-  - Kundenr. i Abb.nr. (kolumny C i B).
-- **Rozwijanie** — kliknięcie kafelka płynnie rozwija go na całą szerokość i pokazuje wszystkie dane z wiersza
-  (numery z przyciskiem „kopiuj”, daty z informacją „za 2 miesiące / rok temu”, kwoty, telefon jako link,
-  komentarze dodane do komórek w Excelu). `Esc` albo `×` zwija kafelek.
-- **Wyszukiwanie** po wszystkich kolumnach naraz: nazwisko, inicjały, adres, Kundenr., Abb.nr., telefon,
-  komentarze… Bez znaczenia są wielkie litery, polskie/norweskie znaki (`molnmoa` znajdzie „Mølnmoa”)
-  i spacje w numerach (`45254373` znajdzie „452 54 373”). Jeśli trafienie jest w polu, którego nie widać na
-  kafelku, kafelek pokazuje to pole z podświetleniem. Skrót: `/` przechodzi do wyszukiwarki.
-- **Kolejność**: jak w pliku albo alfabetycznie według pola na kafelku.
-- **Wolne lokale** (wiersze bez klienta) — ukryte domyślnie, można je włączyć przełącznikiem.
+- **Kort** — hver leietaker i arket blir ett kort. Som standard viser kortet bare **adressen** (kolonne K).
+- **Vis på kortene:** — velg hva som skal stå på kortene (flere felt samtidig er mulig):
+  initialer (kolonne H), fullt navn (G), adresse (K), Kundenr. og Abb.nr. (C og B).
+- **Tre datoer på hvert kort, alltid** — uansett hva som er valgt:
+  - **Inn** – dato innflytting (L),
+  - **Ut** – dato utflytting / kontraktslutt (M),
+  - **Reg.** – neste regulering etter KPI (N).
+- **Fargekoder for kontraktslutt** — hele kortet farges når kontrakten snart utløper:
 
-## Jak uruchomić
+  | Farge | Betydning |
+  | --- | --- |
+  | 🟥 knallrød | under 1 måned igjen |
+  | 🟧 oransje | 1–2 måneder igjen |
+  | 🟨 gul | 2–3 måneder igjen |
+  | skravert med mørkerød kant | kontrakten har allerede utløpt |
 
-Dane są czytane bezpośrednio z pliku Excel, więc po podmianie `Data.xlsx` aplikacja od razu pokazuje nowe dane.
+- **KPI-regulering** — samme frister vises som en farget merkelapp ved «Reg.»-datoen
+  (rød / oransje / gul, og «forfalt» når datoen er passert uten å ha blitt oppdatert).
+- **Oversikt over frister** øverst: antall kort i hver kategori for kontraktslutt og KPI-regulering.
+  Klikk på en kategori for å vise bare de kortene.
+- **Kjønn** — hvert kort har symbolet ♀ eller ♂. Kjønnet hentes fra kolonnen «Kjønn» (M/K) hvis den finnes i
+  Excel-filen, ellers antas det ut fra fornavnet (ordlisten ligger i `navn-kjonn.js`).
+  Står det **?** på kortet, er kjønnet ukjent — legg da til kolonnen «Kjønn» i Excel.
+  Tjenester (f.eks. «Helse og omsorg», «Nav») får et eget symbol.
+- **Utvidet kort** — klikk på et kort for å se alle data fra raden: varsler om frister, numre med
+  kopieringsknapp, beløp, telefon som lenke og kommentarer fra cellene i Excel. `Esc` eller `×` lukker kortet.
+- **Søk** i alle kolonner samtidig: navn, initialer, adresse, Kundenr., Abb.nr., telefon, kommentarer …
+  Store/små bokstaver, æ/ø/å og mellomrom i numre spiller ingen rolle (`molnmoa` finner «Mølnmoa»,
+  `45254373` finner «452 54 373»). Snarvei: `/`.
+- **Sortering**: som i filen, A–Å, etter kontraktslutt eller etter KPI-regulering (snarest først).
+- **Ledige boliger** (rader uten leietaker) er skjult som standard og kan slås på.
 
-**Sposób 1 — otwórz `index.html` w przeglądarce.**
-Przeglądarka nie pozwala stronie otwartej z dysku samodzielnie czytać innych plików, więc aplikacja poprosi
-o wybranie pliku Excel (przycisk albo przeciągnięcie pliku na stronę). Plik jest odczytywany wyłącznie
-lokalnie, w tej przeglądarce — nic nie jest nigdzie wysyłane.
+Datoene sammenlignes med dagens dato i nettleseren, så fargene oppdaterer seg selv fra dag til dag.
 
-**Sposób 2 — lokalny serwer** (wtedy `Data.xlsx` z tego folderu wczyta się automatycznie):
+## Slik starter du
+
+Dataene leses rett fra Excel-filen, så når `Data.xlsx` byttes ut, viser appen de nye dataene med en gang.
+
+**Måte 1 — åpne `index.html` i nettleseren.**
+Nettleseren lar ikke en side som er åpnet fra disken lese andre filer på egen hånd, så appen ber deg velge
+Excel-filen (knapp, eller dra filen inn på siden). Filen leses bare lokalt i nettleseren — ingenting sendes noe sted.
+
+**Måte 2 — lokal server** (da lastes `Data.xlsx` fra mappen automatisk):
 
 ```bash
 python -m http.server 8000
 ```
 
-i otwórz <http://localhost:8000>.
+og åpne <http://localhost:8000>.
 
-W każdej chwili można wczytać inny plik przyciskiem **Wczytaj plik Excel**.
+Du kan når som helst laste inn en annen fil med knappen **Last inn Excel-fil**.
 
-## Pliki
+## Filer
 
-| Plik | Co zawiera |
+| Fil | Innhold |
 | --- | --- |
-| `index.html` | strona |
-| `style.css` | wygląd (jasny i ciemny motyw, wersja na telefon) |
-| `app.js` | kafelki, wybór pól, wyszukiwanie, rozwijanie |
-| `xlsx-reader.js` | minimalny czytnik plików `.xlsx` napisany bez zewnętrznych bibliotek |
+| `index.html` | siden |
+| `style.css` | utseende (lyst og mørkt tema, mobilvisning) |
+| `app.js` | kort, valg av felt, frister, søk, utvidet kort |
+| `navn-kjonn.js` | ordliste over fornavn for å anta kjønn |
+| `xlsx-reader.js` | enkel leser for `.xlsx`-filer, skrevet uten eksterne biblioteker |
 
-Kolumny są rozpoznawane po nagłówkach w wierszu z „Navn” i „Adresse”; jeśli nagłówek zostanie zmieniony,
-aplikacja używa litery kolumny (A–P), więc nowe wiersze i drobne zmiany w arkuszu nie wymagają zmian w kodzie.
+Kolonnene finnes ut fra overskriftene i raden med «Navn» og «Adresse»; hvis en overskrift endres, brukes
+kolonnebokstaven (A–P). Nye rader og små endringer i arket krever derfor ingen endringer i koden.
 
-## Uwaga o danych osobowych
+## Personopplysninger
 
-`Data.xlsx` zawiera dane osobowe (imiona i nazwiska, adresy, numery telefonów). To repozytorium jest
-**publiczne** — rozważ usunięcie pliku z repozytorium (i z historii git) albo zmianę repozytorium na prywatne.
-Aplikacja działa także bez pliku w repozytorium: wystarczy wczytać go z dysku.
+`Data.xlsx` inneholder personopplysninger (navn, adresser, telefonnumre). Dette repositoriet er
+**offentlig** — vurder å fjerne filen fra repositoriet (og fra git-historikken) eller å gjøre repositoriet
+privat. Appen fungerer også uten filen i repositoriet: last den inn fra disken.

@@ -1,17 +1,17 @@
 /*
- * Minimalny czytnik plików .xlsx — bez zewnętrznych bibliotek.
+ * Enkel leser for .xlsx-filer — uten eksterne biblioteker.
  *
- * Czyta pierwszy arkusz skoroszytu: wartości komórek (tekst, liczby, daty,
- * wartości logiczne) oraz komentarze do komórek. Korzysta wyłącznie z API
- * przeglądarki: DataView (ZIP), DecompressionStream (deflate) i DOMParser (XML).
+ * Leser det første arket i arbeidsboken: celleverdier (tekst, tall, datoer,
+ * sannhetsverdier) og kommentarer til celler. Bruker bare nettleserens egne API-er:
+ * DataView (ZIP), DecompressionStream (deflate) og DOMParser (XML).
  *
- * Wynik:
+ * Resultat:
  *   {
  *     sheetName: 'Arkusz1',
- *     rows: [[v, v, ...], ...],          // rows[0] = wiersz 1 w Excelu, rows[r][0] = kolumna A
+ *     rows: [[v, v, ...], ...],          // rows[0] = rad 1 i Excel, rows[r][0] = kolonne A
  *     comments: Map('r,c' -> { author, text })
  *   }
- * Daty są zwracane jako obiekty Date (północ UTC).
+ * Datoer returneres som Date-objekter (midnatt UTC).
  */
 (function (global) {
   'use strict';
@@ -24,20 +24,20 @@
     const view = new DataView(buffer);
     const bytes = new Uint8Array(buffer);
 
-    // Koniec katalogu centralnego (EOCD) — szukamy od końca pliku.
+    // Slutten av den sentrale katalogen (EOCD) — søker bakfra i filen.
     let eocd = -1;
     const minPos = Math.max(0, buffer.byteLength - 22 - 0xffff);
     for (let i = buffer.byteLength - 22; i >= minPos; i--) {
       if (view.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
     }
-    if (eocd < 0) throw new Error('To nie jest plik .xlsx (brak struktury ZIP).');
+    if (eocd < 0) throw new Error('Dette er ikke en .xlsx-fil (mangler ZIP-struktur).');
 
     const count = view.getUint16(eocd + 10, true);
     let ptr = view.getUint32(eocd + 16, true);
     const entries = new Map();
 
     for (let n = 0; n < count; n++) {
-      if (view.getUint32(ptr, true) !== 0x02014b50) throw new Error('Uszkodzony plik .xlsx.');
+      if (view.getUint32(ptr, true) !== 0x02014b50) throw new Error('Skadet .xlsx-fil.');
       const method = view.getUint16(ptr + 10, true);
       const compSize = view.getUint32(ptr + 20, true);
       const nameLen = view.getUint16(ptr + 28, true);
@@ -57,9 +57,9 @@
         view.getUint16(e.localOffset + 28, true);
       const data = bytes.subarray(start, start + e.compSize);
       if (e.method === 0) return utf8.decode(data);
-      if (e.method !== 8) throw new Error('Nieobsługiwana metoda kompresji w pliku .xlsx.');
+      if (e.method !== 8) throw new Error('Ukjent komprimeringsmetode i .xlsx-filen.');
       if (typeof DecompressionStream === 'undefined') {
-        throw new Error('Ta przeglądarka jest zbyt stara, aby odczytać plik .xlsx.');
+        throw new Error('Nettleseren er for gammel til å lese .xlsx-filer.');
       }
       const stream = new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
       return new Response(stream).text();
@@ -74,16 +74,16 @@
 
   function parseXml(text) {
     const doc = parser.parseFromString(text, 'application/xml');
-    if (doc.getElementsByTagName('parsererror').length) throw new Error('Błędny XML w pliku .xlsx.');
+    if (doc.getElementsByTagName('parsererror').length) throw new Error('Ugyldig XML i .xlsx-filen.');
     return doc;
   }
 
-  // Elementy wyszukujemy po nazwie lokalnej — niezależnie od prefiksu przestrzeni nazw.
+  // Elementer søkes opp etter lokalt navn — uavhengig av navneromsprefiks.
   const all = (node, name) => Array.from(node.getElementsByTagNameNS('*', name));
   const children = (node, name) => Array.from(node.children).filter((c) => c.localName === name);
   const first = (node, name) => all(node, name)[0] || null;
 
-  // Tekst elementu <si>/<is>/<text>: łączymy wszystkie <t>, pomijając fonetykę (<rPh>).
+  // Tekst i <si>/<is>/<text>: slår sammen alle <t>, hopper over fonetikk (<rPh>).
   function richText(node) {
     return all(node, 't')
       .filter((t) => !t.closest || !t.closest('rPh'))
@@ -116,7 +116,7 @@
     return parts.join('/');
   }
 
-  /* ---------- Formaty liczb / daty ---------- */
+  /* ---------- Tallformater / datoer ---------- */
 
   const BUILTIN_DATE_FORMATS = new Set([14, 15, 16, 17, 18, 19, 20, 21, 22, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 45, 46, 47, 50, 51, 52, 53, 54, 55, 56, 57, 58]);
 
@@ -125,17 +125,17 @@
     if (!code) return false;
     const stripped = code
       .split(';')[0]
-      .replace(/"[^"]*"/g, '')     // teksty w cudzysłowie
+      .replace(/"[^"]*"/g, '')     // tekst i anførselstegn
       .replace(/\[[^\]]*\]/g, '')  // [Red], [$NOK], [h] …
-      .replace(/\\./g, '')         // znaki ucieczki
-      .replace(/[_*]./g, '');      // wypełnienia
+      .replace(/\\./g, '')         // escape-tegn
+      .replace(/[_*]./g, '');      // utfylling
     return /[dmyhs]/i.test(stripped) && !/general/i.test(stripped);
   }
 
   function serialToDate(serial, date1904) {
     let days = serial;
     if (date1904) days += 1462;
-    if (days < 60) days += 1; // błąd roku przestępnego 1900 w Excelu
+    if (days < 60) days += 1; // Excels skuddårsfeil for 1900
     const ms = Math.round((days - 25569) * 86400) * 1000;
     const d = new Date(ms);
     return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
@@ -152,7 +152,7 @@
     return m ? { c: colIndex(m[1]), r: parseInt(m[2], 10) - 1 } : null;
   }
 
-  /* ---------- Skoroszyt ---------- */
+  /* ---------- Arbeidsbok ---------- */
 
   async function read(buffer) {
     const zip = openZip(buffer);
@@ -163,7 +163,7 @@
       if (rel.type.endsWith('/officeDocument')) workbookPath = rel.target;
     }
     const workbookXml = await zip.read(workbookPath);
-    if (!workbookXml) throw new Error('W pliku nie znaleziono skoroszytu Excel.');
+    if (!workbookXml) throw new Error('Fant ingen Excel-arbeidsbok i filen.');
     const workbook = parseXml(workbookXml);
     const wbRels = await readRels(zip, workbookPath);
 
@@ -171,13 +171,13 @@
     const date1904 = !!wbPr && /^(1|true)$/i.test(wbPr.getAttribute('date1904') || '');
 
     const sheetEl = first(workbook, 'sheet');
-    if (!sheetEl) throw new Error('Skoroszyt nie zawiera arkuszy.');
+    if (!sheetEl) throw new Error('Arbeidsboken har ingen ark.');
     const sheetName = sheetEl.getAttribute('name') || 'Arkusz';
     const rid = sheetEl.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'id') ||
       sheetEl.getAttribute('r:id');
     const sheetPath = (wbRels.get(rid) || {}).target || 'xl/worksheets/sheet1.xml';
 
-    // Teksty współdzielone
+    // Delte tekster
     let shared = [];
     let stylesPath = null;
     for (const rel of wbRels.values()) {
@@ -189,7 +189,7 @@
       }
     }
 
-    // Style → które komórki są datami
+    // Stiler → hvilke celler er datoer
     const dateStyle = [];
     const stylesXml = stylesPath ? await zip.read(stylesPath) : null;
     if (stylesXml) {
@@ -205,9 +205,9 @@
       }
     }
 
-    // Arkusz
+    // Ark
     const sheetXml = await zip.read(sheetPath);
-    if (!sheetXml) throw new Error('Nie można odczytać arkusza „' + sheetName + '”.');
+    if (!sheetXml) throw new Error('Kan ikke lese arket «' + sheetName + '».');
     const sheet = parseXml(sheetXml);
     const rows = [];
     let lastRow = -1;
@@ -239,7 +239,7 @@
     }
     for (let i = 0; i < rows.length; i++) if (!rows[i]) rows[i] = [];
 
-    // Komentarze do komórek
+    // Kommentarer til celler
     const comments = new Map();
     const sheetRels = await readRels(zip, sheetPath);
     for (const rel of sheetRels.values()) {
@@ -254,7 +254,7 @@
         const textEl = children(cm, 'text')[0];
         let text = textEl ? richText(textEl).trim() : '';
         let author = authors[parseInt(cm.getAttribute('authorId') || '0', 10)] || '';
-        // Excel zaczyna treść komentarza od „Autor:\n” — oddzielamy to.
+        // Excel starter kommentarteksten med «Forfatter:\n» — det skilles ut.
         const nl = text.indexOf('\n');
         if (nl > 0 && text.slice(0, nl).trim().endsWith(':')) {
           author = text.slice(0, nl).trim().slice(0, -1);

@@ -1,27 +1,28 @@
 <!doctype html>
-<html lang="pl">
+<html lang="nb">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
   <meta name="robots" content="noindex, nofollow">
-  <title>Klienci</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='2' y='2' width='12' height='12' rx='3' fill='%231f6f8b'/%3E%3Crect x='18' y='2' width='12' height='12' rx='3' fill='%231f6f8b' opacity='.55'/%3E%3Crect x='2' y='18' width='12' height='12' rx='3' fill='%231f6f8b' opacity='.55'/%3E%3Crect x='18' y='18' width='12' height='12' rx='3' fill='%231f6f8b'/%3E%3C/svg%3E">
+  <title>Leietakere</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='2' y='2' width='12' height='12' rx='3' fill='%231f6f8b'/%3E%3Crect x='18' y='2' width='12' height='12' rx='3' fill='%23e0242f'/%3E%3Crect x='2' y='18' width='12' height='12' rx='3' fill='%23ffb020'/%3E%3Crect x='18' y='18' width='12' height='12' rx='3' fill='%231f6f8b'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="style.css">
   <script src="xlsx-reader.js" defer></script>
+  <script src="navn-kjonn.js" defer></script>
   <script src="app.js" defer></script>
 </head>
 <body>
   <header class="topbar">
     <div class="brand">
-      <h1>Klienci</h1>
-      <p class="subtitle" id="subtitle">Wczytywanie danych…</p>
+      <h1>Leietakere</h1>
+      <p class="subtitle" id="subtitle">Laster data…</p>
       <p class="source" id="source"></p>
     </div>
-    <label class="btn btn-ghost file-btn" title="Wczytaj inny plik .xlsx (albo przeciągnij go na stronę)">
+    <label class="btn btn-ghost file-btn" title="Last inn en annen .xlsx-fil (eller dra den inn på siden)">
       <input type="file" id="fileInput" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4m0 0L8 8m4-4l4 4"/><path d="M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg>
-      <span>Wczytaj plik Excel</span>
+      <span>Last inn Excel-fil</span>
     </label>
   </header>
 
@@ -30,25 +31,27 @@
       <div class="search">
         <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>
         <input type="text" id="search" inputmode="search" enterkeyhint="search" autocomplete="off" spellcheck="false"
-               placeholder="Szukaj: nazwisko, inicjały, adres, numer, telefon…" aria-label="Szukaj klientów">
+               placeholder="Søk: navn, initialer, adresse, nummer, telefon…" aria-label="Søk etter leietakere">
         <kbd class="search-kbd" aria-hidden="true">/</kbd>
       </div>
 
       <div class="controls">
         <div class="show-picker">
           <button type="button" class="select-btn" id="showBtn" aria-haspopup="true" aria-expanded="false" aria-controls="showMenu">
-            <span class="select-caption">Na kafelkach:</span>
-            <span class="select-value" id="showValue">Adres</span>
+            <span class="select-caption">Vis på kortene:</span>
+            <span class="select-value" id="showValue">Adresse</span>
             <svg class="chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5"/></svg>
           </button>
-          <div class="menu" id="showMenu" role="group" aria-label="Co pokazywać na kafelkach" hidden></div>
+          <div class="menu" id="showMenu" role="group" aria-label="Hva som vises på kortene" hidden></div>
         </div>
 
         <label class="select-wrap">
-          <span class="select-caption">Kolejność:</span>
-          <select id="sort" aria-label="Kolejność kafelków">
-            <option value="file">jak w pliku</option>
-            <option value="alpha">A–Z wg kafelka</option>
+          <span class="select-caption">Sorter:</span>
+          <select id="sort" aria-label="Rekkefølge på kortene">
+            <option value="file">som i filen</option>
+            <option value="alpha">A–Å etter kortet</option>
+            <option value="ut">kontraktslutt (snarest)</option>
+            <option value="reg">KPI-regulering (snarest)</option>
           </select>
           <svg class="chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5"/></svg>
         </label>
@@ -56,7 +59,7 @@
         <label class="switch">
           <input type="checkbox" id="showVacant">
           <span class="switch-track" aria-hidden="true"></span>
-          <span>Wolne<span class="hide-sm"> lokale</span> <span class="muted" id="vacantCount"></span></span>
+          <span>Ledige<span class="hide-sm"> boliger</span> <span class="muted" id="vacantCount"></span></span>
         </label>
 
         <p class="count" id="count" aria-live="polite"></p>
@@ -67,20 +70,22 @@
   <main class="main">
     <div class="loader is-loading" id="loader">
       <svg class="loader-icon" viewBox="0 0 48 48" aria-hidden="true"><rect x="8" y="6" width="32" height="36" rx="4"/><path d="M16 18h16M16 26h16M16 34h10"/></svg>
-      <h2 id="loaderTitle">Wczytywanie danych…</h2>
+      <h2 id="loaderTitle">Laster data…</h2>
       <p id="loaderText"></p>
-      <button type="button" class="btn btn-primary" id="pickBtn" hidden>Wybierz plik .xlsx</button>
+      <button type="button" class="btn btn-primary" id="pickBtn" hidden>Velg .xlsx-fil</button>
     </div>
 
-    <ul class="grid" id="grid" aria-label="Klienci"></ul>
+    <section class="overview" id="overview" aria-label="Frister" hidden></section>
+
+    <ul class="grid" id="grid" aria-label="Leietakere"></ul>
 
     <div class="empty" id="empty" hidden>
-      <p id="emptyText">Brak wyników.</p>
-      <button type="button" class="btn btn-ghost" id="clearSearch">Wyczyść wyszukiwanie</button>
+      <p id="emptyText">Ingen treff.</p>
+      <button type="button" class="btn btn-ghost" id="clearSearch">Tøm søk og filtre</button>
     </div>
   </main>
 
-  <div class="drop-overlay" aria-hidden="true"><div>Upuść plik Excel, aby go wczytać</div></div>
+  <div class="drop-overlay" aria-hidden="true"><div>Slipp Excel-filen for å laste den inn</div></div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </body>
 </html>
